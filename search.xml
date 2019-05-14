@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>Overview of Virtual Memory in Linux Kernel and memory allocation in glibc</title>
+      <link href="/2019/05/14/linux-glic-mm-overview/"/>
+      <url>/2019/05/14/linux-glic-mm-overview/</url>
+      
+        <content type="html"><![CDATA[<p>Long ago, I have presentd an overview of virtual memory in Linux kernel and memory memory in glibc. Now i am lazy to write these again, so I try to upload the PPT in images. As you know, each pages has details knowledge could be digged into, so you have further view, please google the keywords.</p><h2 id="Overview-of-VM-system-in-Linux"><a href="#Overview-of-VM-system-in-Linux" class="headerlink" title="Overview of VM system in Linux"></a>Overview of VM system in Linux</h2><p><img src="/images/memory/Slide3.PNG" alt="VM"><br><a id="more"></a></p><h2 id="Overview-of-MMU-and-Buddy-amp-Slab-allocator"><a href="#Overview-of-MMU-and-Buddy-amp-Slab-allocator" class="headerlink" title="Overview of MMU and Buddy &amp; Slab allocator"></a>Overview of MMU and Buddy &amp; Slab allocator</h2><p><img src="/images/memory/Slide4.PNG" alt="VM"></p><h2 id="LifeCycle-of-Page-frames"><a href="#LifeCycle-of-Page-frames" class="headerlink" title="LifeCycle of Page frames"></a>LifeCycle of Page frames</h2><p><img src="/images/memory/Slide5.PNG" alt="VM"></p><h2 id="Address-Space-and-VMA-mapping-in-Kernel"><a href="#Address-Space-and-VMA-mapping-in-Kernel" class="headerlink" title="Address Space and VMA mapping in Kernel"></a>Address Space and VMA mapping in Kernel</h2><p><img src="/images/memory/Slide6.PNG" alt="VM"></p><h2 id="Pic-for-summary-memory-in-Kernel"><a href="#Pic-for-summary-memory-in-Kernel" class="headerlink" title="Pic for summary memory in Kernel"></a>Pic for summary memory in Kernel</h2><p><img src="/images/memory/Slide7.PNG" alt="VM"></p><h2 id="Glibc-memory-allocation-concepts"><a href="#Glibc-memory-allocation-concepts" class="headerlink" title="Glibc memory allocation concepts"></a>Glibc memory allocation concepts</h2><p><img src="/images/memory/Slide8.PNG" alt="VM"></p><h2 id="Brk-and-mmap"><a href="#Brk-and-mmap" class="headerlink" title="Brk and mmap"></a>Brk and mmap</h2><p><img src="/images/memory/Slide9.PNG" alt="VM"></p><h2 id="Internal-structure-of-glibc"><a href="#Internal-structure-of-glibc" class="headerlink" title="Internal structure of glibc"></a>Internal structure of glibc</h2><p><img src="/images/memory/Slide10.PNG" alt="VM"></p><h2 id="malloc-and-free-process-in-glibc"><a href="#malloc-and-free-process-in-glibc" class="headerlink" title="malloc and free process in glibc"></a>malloc and free process in glibc</h2><p><img src="/images/memory/Slide11.PNG" alt="VM"></p><h2 id="Some-keypoints-for-glibc"><a href="#Some-keypoints-for-glibc" class="headerlink" title="Some keypoints for glibc"></a>Some keypoints for glibc</h2><p><img src="/images/memory/Slide12.PNG" alt="VM"></p><h2 id="Tips-for-heap-profile"><a href="#Tips-for-heap-profile" class="headerlink" title="Tips for heap profile"></a>Tips for heap profile</h2><p><img src="/images/memory/Slide13.PNG" alt="VM"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Knowledge </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Virtual_Memory </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Cscope Usage</title>
+      <link href="/2017/08/02/cscope-usage/"/>
+      <url>/2017/08/02/cscope-usage/</url>
+      
+        <content type="html"><![CDATA[<p>Actually the source insight is the fist choice code viewing tool for me, but it requires license and in Linux the vim is the powerful editor for me. So to better understanding the code, cscope is the best choice for me to read code in vim. Now i used the cscope more and more often.</p><h2 id="Generate-the-cscope-meta-data"><a href="#Generate-the-cscope-meta-data" class="headerlink" title="Generate the cscope meta data"></a>Generate the cscope meta data</h2><p>Enter below commands at the top dir of the project, and then cscope.out will be generated:</p><blockquote><p>find . -name “*.h” -o -name “*.c” -o -name “*.cc” -o -name “*.cpp” &gt; cscope.files<br>cscope -bqR -i cscope.files</p></blockquote><p>More parameters you can refer to cscope -h.<br><a id="more"></a></p><h2 id="Use-cscope-to-read-code"><a href="#Use-cscope-to-read-code" class="headerlink" title="Use cscope to read code"></a>Use cscope to read code</h2><p>After the cscope utility installed, you can vim a file as normal and input the cscope command, below help will show:</p><blockquote><p>:cscope<br>cscope commands:<br>   add : Add a new database    (Usage: add file|dir [pre-path] [flags])<br>   find : Query for a pattern    (Usage: find c|d|e|f|g|i|s|t name)<br>      c: Find functions calling this function<br>      d: Find functions called by this function<br>      e: Find this egrep pattern<br>      f: Find this file<br>      g: Find this definition<br>      i: Find files #including this file<br>      s: Find this C symbol<br>      t: Find assignments to<br>   help : Show this message              (Usage: help)<br>   kill : Kill a connection              (Usage: kill #)<br>   reset: Reinit all connections         (Usage: reset)<br>   show : Show connections               (Usage: show)</p></blockquote><p>Chinese reference:</p><blockquote><p>s: 查找C语言符号，即查找函数名、宏、枚举值等出现的地方<br>g: 查找函数、宏、枚举等定义的位置，类似ctags所提供的功能<br>d: 查找本函数调用的函数<br>c: 查找调用本函数的函数<br>t: 查找指定的字符串<br>e: 查找egrep模式，相当于egrep功能，但查找速度快多了<br>f: 查找并打开文件，类似vim的find功能<br>i: 查找包含本文件的文件</p></blockquote><h2 id="HotKeys-defined-for-quick-usage"><a href="#HotKeys-defined-for-quick-usage" class="headerlink" title="HotKeys defined for quick usage"></a>HotKeys defined for quick usage</h2><p>Download the cscope HotKeys maps <a href="http://cscope.sourceforge.net/cscope_maps.vim" target="_blank" rel="noopener">cscope_maps.vim</a>, and puts in dir <code>~/.vim/plugin/</code>. More details you can refer to the files, here I introduces the useful commands for me in daily works:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">nmap &lt;C-\&gt;s :cs find s &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;g :cs find g &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;c :cs find c &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;t :cs find t &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;e :cs find e &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;f :cs find f &lt;C-R&gt;=expand(&quot;&lt;cfile&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;i :cs find i ^&lt;C-R&gt;=expand(&quot;&lt;cfile&gt;&quot;)&lt;CR&gt;$&lt;CR&gt;</span><br><span class="line">nmap &lt;C-\&gt;d :cs find d &lt;C-R&gt;=expand(&quot;&lt;cword&gt;&quot;)&lt;CR&gt;&lt;CR&gt;</span><br></pre></td></tr></table></figure></p><p>Firstly move the cursor to the keyword which want to find, and then press the key <code>ctrl + &#39;\&#39;</code>, and then type option character, it will be the quick access to <code>:cscope find \* some_string</code>.</p><p>Another two useful quick hot key:<br><code>ctrl + ]</code> - Quickly redirect to the function definition.<br><code>ctrl + t</code> - Quickly back to the last frame.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Tools </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> cscope </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Advanced GDB Usage</title>
+      <link href="/2017/07/31/gdb-usage/"/>
+      <url>/2017/07/31/gdb-usage/</url>
+      
+        <content type="html"><![CDATA[<p>This Page was a summary of the advanced gdb usge in daily work, for the basic usage of gdb will not being described here.</p><h2 id="1-Advanced-commands-in-using"><a href="#1-Advanced-commands-in-using" class="headerlink" title="1. Advanced commands in using"></a>1. Advanced commands in using</h2><blockquote><p>gdb&gt; info share - show the shared libraries load by process.<br>gdb&gt; until (line number) - run until to the line number in case you want to break out the while&amp;for loop.<br>gdb&gt; finish - run out of the this function call.<br>gdb&gt; call (function name) - call a function in current context.<br>gdb&gt; disas (function name) - check the assembly code for a function.<br>gdb&gt; run (arguments) - run the program with arguments.<br>gdb&gt; bt - get the call stack for current thread.<br>gdb&gt; frame (stack number) - change stack frame to specfic function call.<br>gdb&gt; info regs - show the values of current registers.<br>gdb&gt; list filename:line - list the code of filename:line<br>gdb&gt; info - list all info sub commands and which are helpful.</p></blockquote><a id="more"></a><h2 id="2-Set-condition-break-point-and-watch"><a href="#2-Set-condition-break-point-and-watch" class="headerlink" title="2. Set condition break point and watch"></a>2. Set condition break point and watch</h2><p>we can set the normal break point as below:</p><blockquote><p>gdb&gt; break (function name)<br>gdb&gt; break filename:line<br>gdb&gt; break address</p></blockquote><p>In case you want to stop a break point in condition you can do as below:</p><blockquote><p>gdb&gt; break if val==(some value)</p></blockquote><p>But sometimes, the critical case was string comparasion, you can’t compare 2 strings with == directly. In some case, the strcmp may help you, but some are not. In these cases, below gdb native function will help:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">_memeq(buf1, buf2, length) - Returns one <span class="keyword">if</span> the length bytes at the addresses given by buf1 <span class="keyword">and</span> buf2 are equal. Otherwise it returns zero.</span><br><span class="line">_streq(str1, str2) - Returns one <span class="keyword">if</span> the <span class="built_in">string</span> str matches the regular expression regex. Otherwise it returns zero. The syntax of the regular expression is that specified by Python’s regular expression support. </span><br><span class="line">_strlen(str) - Returns one <span class="keyword">if</span> the strings str1 <span class="keyword">and</span> str2 are equal. Otherwise it returns zero. </span><br><span class="line">_regex(str, regex) - Returns the length of <span class="built_in">string</span> str.</span><br></pre></td></tr></table></figure></p><p>Sometimes, you want to watch a variable but it was thread level’s variable, you can watch the address change directly as below:</p><blockquote><p>gdb&gt; p &amp;variable - get the address of the variable.<br>gdb&gt; watch *(int*)address </p></blockquote><h2 id="3-Multiple-threads-debugging-using-gdb"><a href="#3-Multiple-threads-debugging-using-gdb" class="headerlink" title="3. Multiple threads debugging using gdb"></a>3. Multiple threads debugging using gdb</h2><p>You need get some information of all  threads:</p><blockquote><p>gdb&gt; info threads – show all threads<br>gdb&gt; thread apply all bt – show call stack for all threads<br>gdb&gt; thread (thread num) – change the current thread to specfic thread.</p></blockquote><p>Sometimes you need continuing debug the current thread, but other thread schedule may break up. You can lock the thread scheduler as below:</p><blockquote><p>gdb&gt; set scheduler-locking on</p></blockquote><h2 id="4-Show-the-content-of-memory"><a href="#4-Show-the-content-of-memory" class="headerlink" title="4. Show the content of memory"></a>4. Show the content of memory</h2><p>A generic way to show the value in gdb as below:</p><blockquote><p>gdb&gt; p values|pointer</p></blockquote><p>But most cases, we may need check the values of the address directly, do as below:</p><blockquote><p>gdb&gt; x /nfu (address)<br>n - indicates the number of block want to show<br>f - indicates the format to show the address(x for hex;d for 10-ary; u for unsigned 10-ary;o for 8-ary; t for bin; i for instructions show; c for char)<br>u - the length of a address unit (b for 1 byte; h for double byte: w for 4 bytes; g for 8 bytes)</p></blockquote><h2 id="5-Define-a-function-to-call-later"><a href="#5-Define-a-function-to-call-later" class="headerlink" title="5. Define a function to call later"></a>5. Define a function to call later</h2><p>you may want to show some information without specific function, then you can define function as below call:</p><blockquote><p>gdb&gt; define function<br>gdb&gt; content<br>gdb&gt; end</p></blockquote><p>For example:</p><blockquote><p>gdb&gt; define mallocinfox<br>gdb&gt; set \$__f = fopen(“arena.txt”, “w+”)<br>gdb&gt; call malloc_info(0, \$__f)<br>gdb&gt; call fclose(\$__f)<br>gdb&gt; end</p></blockquote><h2 id="6-Gdb-in-batch-mode"><a href="#6-Gdb-in-batch-mode" class="headerlink" title="6. Gdb in batch mode"></a>6. Gdb in batch mode</h2><p>Sometimes, you just want to attach a process and get some information, but you don’t want to hold the process with gdb, you can do in batch mode as below:</p><blockquote><p>gdb -ex “set pagination 0” -ex “Command” -ex “detch” -batch -p $pid<br>For example:<br>gdb -ex “set pagination 0” -ex “thread apply all bt” -ex “detch” -batch -p 12456</p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> Tools </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> gdb; </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>开篇</title>
+      <link href="/2017/07/30/first-blog/"/>
+      <url>/2017/07/30/first-blog/</url>
+      
+        <content type="html"><![CDATA[<p>最近闲下来有空想一些东西，至今工作已经5年了。5年之际，除了工作上得到一些小许的认可，其他好像无其他。脑海时常有一个想法，至今为止我在自己维系生计的技术方面有什么积累吗？有时候和一些小伙子侃侃而谈，可内心总觉得空虚，主要还是没有积累。查看各身边大牛，技术博客好像是必不可少的东西，即是一种积累也是一种展示内容的地方。</p><p>于是乎调研了一些大牛在哪写博客:CSDN,博客园等等，可是各平台水平参次不齐。想想自己只是想要有个地方可以积累知识，作为程序员最好的方式是自己可以控制运维。偶然间发现GitHub Pages,这种本来用来作为项目说明网页的东西，被一些大牛整成了Blog平台。虽然网络上有人批判这种行为，说以国人的脾性，很快这里将会乌烟瘴气，然后GitHub就会关闭中国的Access，然这些对于我们个人是没有办法控制的。<br><a id="more"></a></p><p>不管咋样，决定了自己Blog自己来控制，也就定下了GitHub Pages决心，期间查了很多资料。在blog维护框架Kelly和Hexo之间，最后选择了Hexo。因为偶然间看到一个大牛为Hexo做的theme很适合自己的口味。Hexo入门参考文章: <a href="https://wsgzao.github.io/post/hexo-guide/" target="_blank" rel="noopener">https://wsgzao.github.io/post/hexo-guide/</a>. FreeMind theme参考大牛Joseph Pan的GitHub <a href="https://github.com/wzpan" target="_blank" rel="noopener">https://github.com/wzpan</a> 。</p><p>由于GitHub Pages是静态的博客系统，想要最一些留言之类东西就比较麻烦，no database access support.所以很多玩GitHub  Pages的人借用一些Disqus、网易云跟贴、畅言等，可是这些平台突然某一天就不支持了，然后就没有然后了。所以大牛又自己开发一个基于GitHub issue的留言系统，自己来控制留言。请看每一页后面的Go To Comment.</p><p>现在为止，一个最重要的东西还没有时间是学习，那就是用MarkDown来写Blog。先记事本写起来，以后慢慢学习MarkDown。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 随记 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> GitHub Pages; </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
