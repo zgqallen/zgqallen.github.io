@@ -4,7 +4,7 @@
   
     
     <entry>
-      <title>Overview of Virtual Memory in Linux Kernel and memory allocation in glibc</title>
+      <title>Linux虚拟内存介绍以及glibc内存管理机制窥探</title>
       <link href="/2019/05/14/linux-glic-mm-overview/"/>
       <url>/2019/05/14/linux-glic-mm-overview/</url>
       
