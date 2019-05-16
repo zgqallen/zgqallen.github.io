@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>一次有趣的High load average排查暨深刻理解Linux系统负载 | Guangqing&#39;s Tech Blog</title>
+  <meta name="author" content="Zhong Guangqing">
+  
+  <meta name="description" content="一次有趣的High load average排查暨深刻理解Linux系统负载">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="一次有趣的High load average排查暨深刻理解Linux系统负载">
+  <meta property="og:site_name" content="Guangqing&#39;s Tech Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/themes/bootstrap.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight-default.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/comment.css" media="screen" type="text/css">
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.9/es5-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-sham.min.js"></script>
+  <![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+  
+    <script src="/js/marked.js"></script>
+    <script src="/js/comment.js"></script>
+    <script src="/js/timeago.min.js"></script>
+    <script src="/js/highlight.min.js"></script>
+	<script src="/js/spin.min.js"></script>
+  
+  <!-- analytics -->
+  
+
+
+
+</head>
+</html>
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+	<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+       <a class="navbar-brand" href="/">Guangqing&#39;s Tech Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>归档
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>分类
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>标签
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>关于
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header page-header-inverse ">		
+			<h1 class="title title-inverse "> 一次有趣的High load average排查暨深刻理解Linux系统负载</h1>
+		</div>		
+	
+
+
+
+
+   <style type="text/css">
+           img, video {
+                -webkit-box-shadow:0 0 10px rgba(0, 0, 0, .5);  
+                -moz-box-shadow:0 0 10px rgba(0, 0, 0, .5);  
+                box-shadow:0 0 10px rgba(0, 0, 0, .5);  
+           }
+   </style>
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> <p>一次有趣的High load average排查暨深刻理解Linux系统负载</p>
+			
+		 </div> <!-- alert -->
+	  		
+
+	  <p>当Linux服务运行慢的时候，我们一般都是用top命令看看当前CPU使用率以及哪些进程占用了资源等。资深一些管理员，会通过查看load average来查看系统负载以评估系统是越来越慢还是会越来越快。正常情况下，系统没有活跃进程时，系统的负载是0， 如下所示（用uptime):<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># uptime</span><br><span class="line"> 03:07am  up   0:38,  2 users,  load average: 0.00, 0.00, 0.02</span><br></pre></td></tr></table></figure></p>
+<p>可是有一次有台机会变慢，load average很高，但是CPU 使用率接近于0，如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">top - 05:15:28 up  2:25,  2 users,  load average: 18.44, 18.47, 18.32</span><br><span class="line">Tasks: 144 total,   1 running, 143 sleeping,   0 stopped,   0 zombie</span><br><span class="line">%Cpu0  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu1  :  0.0 us,  0.8 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu2  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu3  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br></pre></td></tr></table></figure></p>
+<p>如果是使用vmstats/iostat,都没办法发现是什么导致High load average和机器变慢。在大量Google之后，最终怀疑到是因为有一个NFS mount的服务器可能down了，大量的df进程导致系统High load average，下面我们细细分析个中原因。</p>
+<a id="more"></a>
+<h2 id="什么是Load-Average"><a href="#什么是Load-Average" class="headerlink" title="什么是Load Average"></a>什么是Load Average</h2><p>Load表示是Linux系统中对当前CPU工作量的度量，简单来说就是CPU需要运行进程数量的队列长度（==不是CPU使用比率，所以值是会大于1==）。而Load average则是分别统计系统1分钟、5分钟、15分钟平均Load。 如上面top所示，1分钟平均负载是18.44，5分钟平均负载是18.49，15分钟平均负载是17.46。<br>当平均负载远高于系统CPU数量，则意味系统负载比较重。如果1分钟负载比较低而15分钟负载比较高，则意味着系统负载将降低。反之，则意味着系统负载将越来越高。这时候我们需要关注是否某些进程消耗大量I/O，CPU或者Memory等。<br>Load Average的评估经常需要和当前系统CPU数量关联起来分析。</p>
+<h5 id="单核CPU"><a href="#单核CPU" class="headerlink" title="- 单核CPU"></a>- 单核CPU</h5><p>假设我们的系统是单核的CPU，把它比喻成是一条单向马路，把CPU任务比作汽车。当车占满整个马路的时候 load=1；当车不多的时候，load &lt;1；当马路都站满了，而且马路外还堆满了汽车的时候，load&gt;1，如下所示:<br><img src="https://img-blog.csdnimg.cn/20190516132631207.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3pncWFsbGVu,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h5 id="多核CPU"><a href="#多核CPU" class="headerlink" title="- 多核CPU"></a>- 多核CPU</h5><p>现代机器基本都是多核CPU，所以即便有时候Load average比较高，系统任然可以运行的比较顺畅。假设我们服务器CPU是2核，那么将意味我们拥有2条马路，我们的Load = 2时，所有马路都跑满车辆，如下所示：<br><img src="https://img-blog.csdnimg.cn/20190516132954619.JPG" alt="在这里插入图片描述"></p>
+<h2 id="Load-Average是如何计算出来的"><a href="#Load-Average是如何计算出来的" class="headerlink" title="Load Average是如何计算出来的"></a>Load Average是如何计算出来的</h2><p>无论是uptime还是top命令输入的load average其实是读取了文件/proc/loadavg:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># cat /proc/loadavg</span><br><span class="line">18.60 18.51 17.67 2/178 11202</span><br></pre></td></tr></table></figure></p>
+<p>前面三个数字是1、5、15分钟内的平均进程数，第四数字是当前运行的进程数量（分子）和总进程数（分母），第五个数字是最后使用的进程ID。<br>/proc/loadavg实际上是内核schedule进程更新，通过proc fs 曝露给user的。我们通过查看一下Linux 内核源代码就可以窥探一二Load average是如何计算出来的。<br><a href="https://github.com/torvalds/linux/blob/master/include/linux/sched/loadavg.h" target="_blank" rel="noopener">include/linux/sched/loadavg.h</a>定义了一定时间Load Average的计算算法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#define LOAD_FREQ	(5*HZ+1)	/* 5 sec intervals */</span><br><span class="line">#define EXP_1		1884		/* 1/exp(5sec/1min) as fixed-point */</span><br><span class="line">#define EXP_5		2014		/* 1/exp(5sec/5min) */</span><br><span class="line">#define EXP_15		2037		/* 1/exp(5sec/15min) */</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line"> * a1 = a0 * e + a * (1 - e)</span><br><span class="line"> */</span><br><span class="line">static inline unsigned long</span><br><span class="line">calc_load(unsigned long load, unsigned long exp, unsigned long active)</span><br><span class="line">&#123;</span><br><span class="line">	unsigned long newload;</span><br><span class="line"></span><br><span class="line">	newload = load * exp + active * (FIXED_1 - exp);</span><br><span class="line">	if (active &gt;= load)</span><br><span class="line">		newload += FIXED_1-1;</span><br><span class="line"></span><br><span class="line">	return newload / FIXED_1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://github.com/torvalds/linux/blob/master/kernel/sched/loadavg.c" target="_blank" rel="noopener">kernel/sched/loadavg.c</a>计算active task 数量：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">long calc_load_fold_active(struct rq *this_rq, long adjust)</span><br><span class="line">&#123;</span><br><span class="line">	long nr_active, delta = 0;</span><br><span class="line"></span><br><span class="line">	nr_active = this_rq-&gt;nr_running - adjust;</span><br><span class="line">	nr_active += (long)this_rq-&gt;nr_uninterruptible;</span><br><span class="line"></span><br><span class="line">	if (nr_active != this_rq-&gt;calc_load_active) &#123;</span><br><span class="line">		delta = nr_active - this_rq-&gt;calc_load_active;</span><br><span class="line">		this_rq-&gt;calc_load_active = nr_active;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return delta;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>更多细节可以通过查看源代码来理解。</p>
+<h2 id="为什么NFS-hang会导致High-Load-Average"><a href="#为什么NFS-hang会导致High-Load-Average" class="headerlink" title="为什么NFS hang会导致High Load Average"></a>为什么NFS hang会导致High Load Average</h2><p>现在我们已经知道Load average是咋么计算出来以及它的意义，我们会过来分析为什么NFS hang会导致High Load Average。其实这是Linux对Load计算一个缺陷。Linux上的load average除了包括正在使用CPU的进程数量和正在等待CPU的进程数量之外，还包括uninterruptible sleep的进程数量（==如函数calc_load_fold_active(）所示==）。通常等待IO设备、等待网络的时候，进程会处于uninterruptible sleep状态。Linux设计者的逻辑是，uninterruptible sleep应该都是很短暂的，很快就会恢复运行，所以被等同于runnable。但是对于NFS 来说，假设服务器一直没有恢复，那么任何对于该mount目录操作都将hang住，该进程会一直处于uninterruptible状态。在本例中，由于有个cron job定期统计NFS磁盘使用量，导致有大量df进程hang住。如下所示（D表示uninterruptible）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># ps -auxwww | grep D</span><br><span class="line">zgqadm    7675  0.0  0.0   5816  1320 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7676  0.0  0.0   5816  1336 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7677  0.0  0.0   5816  1356 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7678  0.0  0.0   5816  1344 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7679  0.0  0.0   5816  1308 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7680  0.0  0.0   5816  1352 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7681  0.0  0.0   5816  1308 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7682  0.0  0.0   5816  1356 tty1     D    04:02   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7761  0.0  0.0   5816  1324 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7762  0.0  0.0   5816  1344 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7763  0.0  0.0   5816  1376 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7764  0.0  0.0   5816  1340 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7765  0.0  0.0   5816  1260 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7766  0.0  0.0   5816  1360 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7767  0.0  0.0   5816  1316 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7768  0.0  0.0   5816  1260 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br><span class="line">zgqadm    7769  0.0  0.0   5816  1376 tty1     D    04:03   0:00 df -Pk /nfsshare</span><br></pre></td></tr></table></figure></p>
+<h6 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h6><hr>
+<p> [1] <a href="https://scoutapm.com/blog/understanding-load-averages" target="_blank" rel="noopener">Understanding Linux CPU Load - when should you be worried</a><br> [2] <a href="http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html" target="_blank" rel="noopener">Linux Load Averages: Solving the Mystery</a><br> [3] <a href="http://linuxperf.com/?p=176" target="_blank" rel="noopener">理解LINUX LOAD AVERAGE的误区</a></p>
+	  
+	</div>
+
+	<div>
+  	<center>
+	<div class="pagination">
+<ul class="pagination">
+	 
+		
+          <li class="prev disabled"><a><i class="fa fa-arrow-circle-o-left"></i>Prev</a></li>
+        
+
+        <li><a href="/archives"><i class="fa fa-archive"></i>Archive</a></li>
+
+		
+		   <li class="next"><a href="/2019/05/14/linux-glic-mm-overview/" class="alignright next">Next<i class="fa fa-arrow-circle-o-right"></i></a></li>         
+        
+	
+</ul>
+</div>
+
+    </center>
+	</div>
+
+    <!-- share -->
+    
+        
+    <div class="bdsharebuttonbox">
+        <a href="#" class="bds_more" data-cmd="more"></a>
+        <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+        <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+        <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+        <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+        <a href="#" class="bds_linkedin" data-cmd="linkedin" title="分享到linkedin"></a>
+        <a href="#" class="bds_evernotecn" data-cmd="evernotecn" title="分享到印象笔记"></a>
+        <a href="#" class="bds_youdao" data-cmd="youdao" title="分享到有道云笔记"></a>
+        <a href="#" class="bds_copy" data-cmd="copy" title="分享到复制网址"></a>
+    </div>
+    <script>
+        window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"24"},"share":{}};
+        with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+    </script>
+
+
+        
+
+    
+	
+	<!-- comment -->
+	
+<section id="comment">
+  <h2 class="title">Comments</h2>
+    	 
+	 <div id="comment-thread"></div>
+	 <div id="loading-spin"></div>
+	 <script type="text/javascript">
+	   getComments({
+           type: "github" ? "github" : "github",       
+	       user: "zgqallen",
+	       repo: "blog_comment_system",
+		   client_id: "1d4b3d0ab96c29d0ce6b",
+           client_secret: "9dc2660ead6a1a1712973c13100dfd48096920bb",
+		   no_comment: "No comments yet. Press the button and go to comment now!",
+		   go_to_comment: "Go to comment",
+		   no_issue: "no_issue",
+		   issue_title: "一次有趣的High load average排查暨深刻理解Linux系统负载",
+		   issue_id: "",
+		   btn_class: "btn btn-primary",
+		   comments_target: "#comment-thread",
+		   loading_target: "#loading_spin"
+		   });
+	 </script>
+  
+</section>
+
+
+	</div> <!-- col-md-9/col-md-12 -->
+		
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2019-05-16 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    </li><li><a href="/categories/Knowledge/">Knowledge<span>2</span></a></li>
+  
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Load-Average-NFS/">Load Average, NFS<span>1</span></a></li>
+    </ul>
+	</div>
+	
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	   <a data-toggle="collapse" data-target="#toc"><i class="fa fa-bars"></i></a>
+	   <div id="toc" class="toc collapse in">
+			<ol class="toc-article"><li class="toc-article-item toc-article-level-2"><a class="toc-article-link" href="#什么是Load-Average"><span class="toc-article-text">什么是Load Average</span></a><ol class="toc-article-child"><li class="toc-article-item toc-article-level-5"><a class="toc-article-link" href="#单核CPU"><span class="toc-article-text">- 单核CPU</span></a></li><li class="toc-article-item toc-article-level-5"><a class="toc-article-link" href="#多核CPU"><span class="toc-article-text">- 多核CPU</span></a></li></ol></li></ol><li class="toc-article-item toc-article-level-2"><a class="toc-article-link" href="#Load-Average是如何计算出来的"><span class="toc-article-text">Load Average是如何计算出来的</span></a></li><li class="toc-article-item toc-article-level-2"><a class="toc-article-link" href="#为什么NFS-hang会导致High-Load-Average"><span class="toc-article-text">为什么NFS hang会导致High Load Average</span></a><ol class="toc-article-child"><li class="toc-article-item toc-article-level-6"><a class="toc-article-link" href="#参考链接"><span class="toc-article-text">参考链接</span></a></li></ol></li>
+		</div>
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+	</div>
+		
+
+</div><!-- row -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  &copy; 2019 Zhong Guangqing
+  
+      with help from <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-freemind/">Freemind</a>.    
+</p> </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+<!-- syntax highlighting -->
+
+  <script>
+  marked.setOptions({
+    highlight: function (code, lang) {
+        return hljs.highlightAuto(code).value;
+    }
+  });
+  function Highlighting(){
+    var markdowns = document.getElementsByClassName('markdown');
+    for(var i=0;i<markdowns.length;i++){
+        if(markdowns[i].innerHTML) markdowns[i].innerHTML =marked(markdowns[i].innerHTML);
+    }
+  }
+  window.addEventListener('DOMContentLoaded', Highlighting, false);
+  window.addEventListener('load', Highlighting, false);
+  </script>
+
+
+</body>
+   </html>

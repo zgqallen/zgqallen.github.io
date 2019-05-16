@@ -127,9 +127,36 @@
 		
             
 		
+            
+		
         
         <!-- render other articles -->
         
+           
+			  
+	
+	<!-- display as entry -->	
+		<h3 class="title">
+			<div class="date"> 2019-05-16 </div>
+			<div class="article-title"><a href="/2019/05/16/linux-load-average-nfs-hang/" title="一次有趣的High load average排查暨深刻理解Linux系统负载">一次有趣的High load average排查暨深刻理解Linux系统负载</a></div>						
+		</h3>
+	
+
+
+			  <div class="entry">
+  <div class="row">
+	
+	
+		<p>当Linux服务运行慢的时候，我们一般都是用top命令看看当前CPU使用率以及哪些进程占用了资源等。资深一些管理员，会通过查看load average来查看系统负载以评估系统是越来越慢还是会越来越快。正常情况下，系统没有活跃进程时，系统的负载是0， 如下所示（用uptime):<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># uptime</span><br><span class="line"> 03:07am  up   0:38,  2 users,  load average: 0.00, 0.00, 0.02</span><br></pre></td></tr></table></figure></p>
+<p>可是有一次有台机会变慢，load average很高，但是CPU 使用率接近于0，如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">top - 05:15:28 up  2:25,  2 users,  load average: 18.44, 18.47, 18.32</span><br><span class="line">Tasks: 144 total,   1 running, 143 sleeping,   0 stopped,   0 zombie</span><br><span class="line">%Cpu0  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu1  :  0.0 us,  0.8 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu2  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">%Cpu3  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br></pre></td></tr></table></figure></p>
+<p>如果是使用vmstats/iostat,都没办法发现是什么导致High load average和机器变慢。在大量Google之后，最终怀疑到是因为有一个NFS mount的服务器可能down了，大量的df进程导致系统High load average，下面我们细细分析个中原因。</p>
+	
+	</div>
+  <a type="button" href="/2019/05/16/linux-load-average-nfs-hang/#more" class="btn btn-default more">Read More</a>
+</div>
+
+           
+		
            
 			  
 	
@@ -271,6 +298,10 @@
   <ul class="entry list-unstyled">
     
       <li>
+        <a href="/2019/05/16/linux-load-average-nfs-hang/" title="一次有趣的High load average排查暨深刻理解Linux系统负载"><i class="fa fa-file-o"></i>一次有趣的High load average排查暨深刻...</a>
+      </li>
+    
+      <li>
         <a href="/2019/05/14/linux-glic-mm-overview/" title="Linux虚拟内存介绍以及glibc内存管理机制窥探"><i class="fa fa-file-o"></i>Linux虚拟内存介绍以及glibc内存管理机制窥探</a>
       </li>
     
@@ -314,7 +345,7 @@
 		<h4>Categories</h4>
 		<ul class="tag_box inline list-unstyled">
 		
-			<li><a href="/categories/Knowledge/">Knowledge<span>1</span></a></li>
+			<li><a href="/categories/Knowledge/">Knowledge<span>2</span></a></li>
 		
 			<li><a href="/categories/Tools/">Tools<span>2</span></a></li>
 		
@@ -329,11 +360,13 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/cscope/">cscope<span>1</span></a></li>
-		
 			<li><a href="/tags/gdb/">gdb;<span>1</span></a></li>
 		
 			<li><a href="/tags/GitHub-Pages/">GitHub Pages;<span>1</span></a></li>
+		
+			<li><a href="/tags/cscope/">cscope<span>1</span></a></li>
+		
+			<li><a href="/tags/Load-Average-NFS/">Load Average, NFS<span>1</span></a></li>
 		
 			<li><a href="/tags/Virtual-Memory/">Virtual_Memory<span>1</span></a></li>
 		
